@@ -1,0 +1,489 @@
+" shell to start with !
+set shell=sh
+" Einrueckung
+set shiftwidth=3
+set tabstop=3
+set nocompatible        " Disable vi compatibility.
+"set nobackup            " Do not keep a backup file.
+set backupdir=~/.vim_backup
+set dir=~/.vim_backup
+set backup
+set writebackup
+set history=100          " Keep 50 lines of command line history.
+set undolevels=1000     " Allow *lots* of undo levels.
+set textwidth=0         " Don't wrap words by default.
+set showcmd             " Show (partial) command in status line.
+set showmatch           " Show matching brackets.
+set showmode            " Show current mode.
+set ruler               " Show the line and column numbers of the cursor.
+"set ignorecase          " Case insensitive matching.
+set incsearch           " Incremental search.
+set autoindent        	" I don't indent my code myself.
+" set cindent           	" I don't indent my code myself.
+set noexpandtab
+set smartindent			"kein Ahnung, was das macht...
+set scrolloff=5         " Keep a context when scrolling.
+set nodigraph             " Required for umlauts.
+set noerrorbells        " No beeps.
+set nomodeline          " No modeline. Modeline sucks.
+set esckeys             " Cursor keys in insert mode.
+"set gdefault            " Use 'g' flag by default with :s/foo/bar/.
+set magic               " Use 'magic' patterns (extended regular expressions).
+set ttyscroll=0         " Turn off scrolling (this is faster).
+set ttyfast             " We have a fast terminal connection.
+set nodigraph 					" bloedes Zeug muss wech
+set nostartofline       " Do not jump to first character with page commands,
+                        " i.e. keep the cursor in the current column.
+set hlsearch            " Highlight search matches.
+set number
+set linebreak			"ordentlicher Zeilenumbruch
+set vb t_vb=".			
+
+set spell
+
+"no beeps
+
+" Suffixes that get lower priority when doing tab completion for filenames.
+" These are files we are not likely to want to edit or read.
+set suffixes=.bak,~,.swp,.o,.info,.aux,.log,.dvi,.bbl,.blg,.brf,.cb,.ind,.idx,.ilg,.inx,.out,.toc
+
+
+
+" set showbreak=+       " Show a '+' if a line is longer than the screen.
+" set laststatus=2      " When to show a statusline.
+
+" Allow backspacing over everything in insert mode.
+set backspace=indent,eol,start
+set whichwrap+=<,>,[,]
+
+
+" Tell vim which characters to show for expanded TABs,
+" trailing whitespace, and end-of-lines. VERY useful!
+" set listchars=tab:>-,trail:Â·,eol:$
+
+" Path/file expansion in colon-mode.
+set wildmode=list:longest
+set wildchar=<TAB>
+
+" Enable syntax-highlighting.
+if has("syntax")
+  syntax on
+endif
+"fuer vo
+filetype plugin indent on
+
+if has("gui_running")
+	colorscheme midnight2
+else
+	"colorscheme darkblue
+	colorscheme desert
+endif
+
+set guifont=Courier\ 10\ Pitch\ 13
+"set guifont=Courier\ 14
+" Use brighter colors if your xterm has a dark background.
+if &term =~ "xterm"
+  set background=dark
+endif
+
+function! InsertTabWrapper(direction)
+    let col = col('.') - 1
+    if !col || getline('.')[col - 1] !~ '\k'
+        return "\<tab>"
+    elseif "backward" == a:direction
+        return "\<c-p>"
+    else
+        return "\<c-n>"
+    endif
+endfunction
+
+function! EXIT_MAP(...)
+
+	abclear
+	imapclear
+	mapclear
+	map <Up> gk
+	map <Down> gj
+	map <F2> :BufExplorer<CR>
+	map <F3> :w<CR>
+	map <F4> <C-w>w
+	map <s-F12> :nohl <CR>
+
+	ino öö {}<Esc>i
+	ino ää ()<Esc>i
+	ino üü []<Esc>i
+	imap <F2> <esc>:BufExplorer<CR>
+	imap <F3> <esc>:w<CR>a
+	imap <F4> <esc><C-W>wi
+	imap <s-F12> <esc>:nohl <CR>
+	imap <s-enter> <esc>
+	"	imap <s-space> <esc>
+	inoremap <tab> <c-r>=InsertTabWrapper ("backward")<cr>
+	inoremap <s-tab> <c-r>=InsertTabWrapper ("forward")<cr>
+
+	set shiftwidth=3
+	set tabstop=3
+	set noexpandtab
+	set softtabstop=0
+
+
+
+" browse through lines which go over several lines
+	imap <silent> <Down> <C-o>gj
+	imap <silent> <Up> <C-o>gk
+
+	nmap <silent> <Down> gj
+	nmap <silent> <Up> gk
+
+	" mark text as in ibm editor
+	map <s-left> vh
+	vmap <s-left> h
+	imap <s-left> <esc>v
+	
+	map <s-right> vl
+	vmap <s-right> l
+	imap <s-right> <esc>lv
+
+	map <s-up> vk
+	vmap <s-up> k
+	imap <s-up> <esc>vk
+
+	map <s-down> vj
+	vmap <s-down> j
+	imap <s-down> <esc>vj
+
+map <s-F8> :%s/<c-V><c-M>/\r/g<ESC>
+imap <s-F8> :%s/<c-V><c-M>/\r/g<ESC>
+
+endfunction
+
+call EXIT_MAP()
+autocmd BufEnter * lcd %:p:h
+
+augroup filetypedetect
+	 au BufRead,BufNewFile,BufEnter *.m setfiletype octave
+    au BufRead,BufNewFile,BufEnter *.edc setfiletype edc
+    au BufRead,BufNewFile,BufEnter *.tex setfiletype tex
+augroup END
+
+autocmd BufNewFile *.tex 0r ~/.vim/skeleton/skeleton.tex
+
+autocmd BufEnter * if &filetype == "tex" | call TEX_Maps() | endif
+autocmd BufLeave * if &filetype == "tex" | call TEX_UnMaps() | endif
+
+autocmd BufEnter * if &filetype == "c" || &filetype == "cpp" || &filetype == "h" | call C_Maps() | endif
+autocmd BufLeave * if &filetype == "c" || &filetype == "cpp" || &filetype == "h" | call C_UnMaps() | endif
+
+autocmd BufEnter * if &filetype == "perl" | call PL_Maps() | endif
+autocmd BufLeave * if &filetype == "perl" | call PL_UnMaps() | endif
+
+autocmd BufEnter * if &filetype == "python" | call PY_Maps() | endif
+autocmd BufLeave * if &filetype == "python" | call PY_UnMaps() | endif
+
+autocmd BufEnter * if &filetype == "ruby" | call RB_Maps() | endif
+autocmd BufLeave * if &filetype == "ruby" | call RB_UnMaps() | endif
+
+autocmd BufEnter make set noexpandtab shiftwidth=8
+autocmd BufLeave make set noexpandtab shiftwidth=2
+
+autocmd BufEnter * if &filetype == "octave" | call OCTAVE_Maps() | endif
+autocmd BufLeave * if &filetype == "octave" | call OCTAVE_UnMaps() | endif
+
+autocmd BufEnter * if &filetype == "edc" | call EDC_Maps() | endif
+autocmd BufLeave * if &filetype == "edc" | call EDC_UnMaps() | endif
+
+function! TEX_Maps(...)
+
+	
+set noautoindent
+set nosmartindent
+set tabstop=4
+
+"map <F5> :w <CR> :make <CR><CR>
+"imap <F5> <Esc><F5>i<Left><Left>
+map <F5> :w <CR> :!if [ \! -e Makefile ]; then cat ~/.vim/skeleton/Makefile \| sed s/dateiname/`basename % .tex`/g > Makefile;fi <CR><CR> :make <CR><CR>
+imap <F5> <Esc><F5>i<Left><Left>
+map <S-F5> :w <CR> :!cat ~/.vim/skeleton/Makefile \| sed s/dateiname/`basename % .tex`/g > Makefile <CR><CR> :make <CR><CR>
+imap <S-F5> <Esc><S-F5>i<Left><Left>
+map <F6> :!xdvi `basename % .tex`.dvi & <CR><CR> 
+imap <F6> <Esc><F6>i
+"map <F7> :make ps <CR> 
+"imap <F7> <Esc><F7>i
+map <F7> :w<CR>:!latex `basename % .tex`.tex <CR><CR>:!dvips `basename % .tex`.dvi <CR>:!ps2pdf `basename % .tex`.ps <CR><CR> 
+imap <F7> <Esc><F7>i
+
+
+
+map <F8> :!ggv `basename % .tex`.ps & <CR><CR>
+imap <F8> <Esc><F8>i
+map <F9> :make pdf <CR> 
+imap <F9> <Esc><F9>i
+map <F10> :w <CR> :!pdflatex % <CR><CR>
+imap <F10> <Esc><F9>i<Left>
+map <F11> :make pdf <CR><CR>
+imap <F11> <Esc><F11>i
+map <F12> :!(killall acroread; acroread *.pdf &)<CR><CR>
+imap <F12> <Esc><F12>i
+
+ino #C \chapter{}<Esc>i
+ino #S \section{}<Esc>i
+ino #U \subsection{}<Esc>i
+ino #B \subsubsection{}<Esc>i
+ino #P \paragraph{}<Esc>i
+
+
+ino #v \vec{}<Esc>i
+
+ino #i \item<Space>
+
+ino #bf \begin{figure}[!h]\begin{center}<CR><CR><Up>\end{center}\end{figure}<Esc>O<Tab>\caption{}<Esc>O<Tab>\includegraphics[width=\linewidth]{}<Esc>i
+
+ino #pf \frac{\partial }{\partial }<Esc>bbi
+
+ino #bi \begin{itemize}<Return>\end{itemize}<Esc>O\item 
+ino #b+ \begin{itemize}[<+->]<Return>\end{itemize}<Esc>O\item 
+
+ino #en \begin{enumerate}<Return>\end{enumerate}<Esc>O\item
+
+ino #ds \begin{description}<Return>\end{description}<Esc>O\item
+
+ino #ea \begin{eqnarray}<Esc>o\end{eqnarray}<Esc>O
+
+ino #eq \begin{equation}<Esc>o\end{equation}<Esc>O
+
+ino #ne \[\]<Esc><Left>i
+
+ino #gb {\sc<Space><Esc>ea}
+
+ino #sc {\sc<Space><Esc>ea}
+
+ino #sk {\sc }<Esc>i
+
+ino #rm {\rm }<Esc>i
+
+ino #tt {\tt }<Left>
+
+ino #sq \sqrt{}<Esc>i
+
+ino #la \label{}<Esc>i
+ino #re \ref{}<Esc>i
+
+ino #ra {\ensuremath \rightarrow}
+
+ino #mb \mathbf{}<Esc>i
+
+ino #bs \boldsymbol{}<Esc>i
+
+ino #/ \frac{}{}<Esc>2hi
+ino #% \frac{}{}<Esc>2hi
+ino #fr \frac{}{}<Esc>2hi
+
+ino #ll \langle<Space>\rvert<Esc>5hi
+ino #rr \lvert<Space>\rangle<Esc>6hi
+
+ino #* \times<Space>
+
+ino ## \
+
+imap <C-CR> \
+
+ino __ _{\rm }<Esc>i
+ino ^^ ^{}<Esc>i
+
+ino ** \cdot<Space>
+
+ino °° \textdegree\<Space>
+
+ino $$ $$<Esc>i
+
+
+ino öö {}<Esc>i
+ino öä {
+ino äö }
+
+ino #( \left(\right)<Esc>6hi
+ino #[ \left[\right]<Esc>6hi
+
+"beamer af == add frame
+ino #af \begin{frame}<CR><CR><up>\end{frame}<Esc>O<Esc>O\frametitle{}<Esc>i
+ino #pa \pause<CR>
+ino #p+ \pause<CR>\vspace{0.3cm}\\<CR>
+
+
+"Ein bisschen griechisch
+
+ino *a \alpha
+ino *b \beta
+ino *c \chi
+ino *d \delta
+ino *e \varepsilon
+ino *f \varphi
+ino *g \gamma
+ino *h \eta
+ino *i \iota
+ino *j \phi
+ino *k \kappa
+ino *l \lambda
+ino *m \mu
+ino *n \nu
+ino *o \omega
+ino *p \pi
+ino *q \vartheta
+ino *r \varrho
+ino *s \sigma
+ino *t \tau
+ino *u \theta
+ino *y \ypsilon
+ino *x \xi
+ino *z \zeta
+
+ino *A \Alpha
+ino *B \Beta
+ino *C \Chi
+ino *D \Delta
+ino *E \Epsilon
+ino *F \Phi
+ino *G \Gamma
+ino *H \Eta
+ino *I \Iota
+ino *J \Phi
+ino *K \Kappa
+ino *L \Lambda
+ino *M \Mu
+ino *N \Nu
+ino *O \Omega
+ino *P \Pi
+ino *Q \Theta
+ino *R \Rho
+ino *S \Sigma
+ino *T \Tau
+ino *Y \Ypsilon
+ino *X \Xi
+ino *Z \Zeta
+	
+
+endfunction
+
+function! TEX_UnMaps(...)
+
+	set autoindent
+	set smartindent
+	set tabstop=2
+	
+	call EXIT_MAP()
+
+endfunction
+
+function! C_Maps(...)
+	set cindent
+
+"	map <F2> :w<CR> :!gcc % -o `basename % .c`<CR>
+"	map <F3> :w<CR> :!g++ % -o `basename % .cpp`<CR>
+"	map <F4> :w<CR> :!gcc % -o `basename % .c` `gtk-config --cflags --libs`<CR>
+	map <F5> :w <CR> :make <CR>
+	imap <F5> <Esc> :w <CR> :make <CR>i
+	map <F7> :!./`basename % .c`<CR>
+	map <F8> :!./`basename % .cpp`<CR>
+	map <F9> :n Makefile<CR>
+	map <F12> zf%
+
+	:ino öö {<CR>}<Esc>O
+	:ino ää ()<Esc>i
+	:ino üü []<Esc>i
+	:ino öä {
+	:ino äö }
+	:ino öü ()
+
+
+	ino #i #include <><Esc>i
+	ino #d #define
+
+	imap üp printf("\n");<Esc>hhhhi
+	imap üs scanf("\n");<Esc>hhhhi
+	imap ät TRUE
+	imap äf FALSE
+	imap än NULL
+	imap üm int main(int argc, char *argv[])<CR>öö
+
+endfunction
+
+function! C_UnMaps(...)
+	set nocindent
+	set cino=
+	call EXIT_MAP()
+endfunction
+
+function! PL_Maps(...)
+	map <F5> :w <CR> :!perl -w % <CR>
+	set noexpandtab
+endfunction
+
+function! PL_UnMaps(...)
+	call EXIT_MAP()
+	set expandtab
+endfunction
+
+function! PY_Maps(...)
+	map <F5> :w <CR> :!python % <CR>
+	map <F6> :w <CR> :!python2.2 % <CR>
+	set shiftwidth=4
+	set tabstop=4
+	set expandtab
+endfunction
+
+function! PY_UnMaps(...)
+	call EXIT_MAP()
+	set noexpandtab
+endfunction
+
+function! RB_Maps(...)
+	:compiler ruby
+	set path=.,/usr/lib/ruby/1.8/,,
+"	source ~/.vim/indent/ruby.vim
+	map <F5> :w <CR> :make % <CR>
+	imap <F5> <esc>:w <CR> :make % <CR>
+	map <F6> :w <CR> :!ruby -w % <CR>
+	imap <F6> :w <CR> :!ruby -w % <CR>
+	
+	:ino öö {}<Esc>i
+	:ino ää ()<Esc>i
+	:ino üü []<Esc>i
+	:ino öä {
+	:ino äö }
+	:ino öü ()
+	:ino öl {<Space>\|\|<CR>}<Esc><up><End>i
+
+	:ab def def<CR>end<esc><up>A
+	:ab class class<CR>end<esc><up>A
+endfunction
+
+function! RB_UnMaps(...)
+	call EXIT_MAP()
+	set path=.,/usr/include/,,
+endfunction
+
+function! OCTAVE_Maps(...)
+	map <F5> :w <CR> :!octave % <CR>
+	set shiftwidth=4
+	set tabstop=4
+endfunction
+
+function! OCTAVE_UnMaps(...)
+	call EXIT_MAP()
+endfunction
+
+function! EDC_Maps(...)
+	map <F5> :w <CR> :!edje_cc % <CR>
+	map <F6> :w <CR> :!edje `basename % .edc`.edj &<CR>
+	:ino öö {<CR>}<Esc>i
+	:ino ää ()<Esc>i
+	:ino üü []<Esc>i
+	:ino öä {
+	:ino äö }
+	:ino öü ()
+endfunction
+
+function! EDC_UnMaps(...)
+	call EXIT_MAP()
+endfunction
+
